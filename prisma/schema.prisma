@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  password     String
+  type         UserType
+  avatar       String?
+  companyName  String?
+  cnpjOrCpf    String?
+  description  String?
+  location     String?
+  priceRange   PriceRange?
+  rating       Float?      @default(0)
+  reviewCount  Int?        @default(0)
+  availability Boolean?    @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  organizedEvents       Event[]           @relation("OrganizerEvents")
+  sentQuoteRequests     QuoteRequest[]    @relation("OrganizerQuotes")
+  givenReviews          Review[]          @relation("OrganizerReviews")
+  services              SupplierService[]
+  portfolio             Portfolio[]
+  receivedQuoteRequests QuoteRequest[]    @relation("SupplierQuotes")
+  receivedReviews       Review[]          @relation("SupplierReviews")
+
+  @@map("users")
+}
+
+model SupplierService {
+  id         String @id @default(cuid())
+  supplierId String
+  service    String
+
+  supplier User @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@map("supplier_services")
+}
+
+model Portfolio {
+  id         String @id @default(cuid())
+  supplierId String
+  imageUrl   String
+
+  supplier User @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@map("portfolio")
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  title       String
+  type        EventType
+  date        DateTime
+  location    String
+  budget      String
+  description String
+  status      EventStatus @default(PLANNING)
+  organizerId String
+  guestCount  Int
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  organizer     User           @relation("OrganizerEvents", fields: [organizerId], references: [id], onDelete: Cascade)
+  quoteRequests QuoteRequest[]
+  reviews       Review[]
+
+  @@map("events")
+}
+
+model QuoteRequest {
+  id          String      @id @default(cuid())
+  eventId     String
+  supplierId  String
+  organizerId String
+  message     String
+  status      QuoteStatus @default(PENDING)
+  response    String?
+  price       Float?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  supplier  User  @relation("SupplierQuotes", fields: [supplierId], references: [id], onDelete: Cascade)
+  organizer User  @relation("OrganizerQuotes", fields: [organizerId], references: [id], onDelete: Cascade)
+
+  @@map("quote_requests")
+}
+
+model Review {
+  id           String    @id @default(cuid())
+  supplierId   String
+  organizerId  String
+  eventId      String
+  rating       Int       @db.SmallInt
+  comment      String
+  response     String?
+  responseDate DateTime?
+  createdAt    DateTime  @default(now())
+
+  supplier  User  @relation("SupplierReviews", fields: [supplierId], references: [id], onDelete: Cascade)
+  organizer User  @relation("OrganizerReviews", fields: [organizerId], references: [id], onDelete: Cascade)
+  event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+enum UserType {
+  ORGANIZER
+  SUPPLIER
+}
+
+enum PriceRange {
+  BUDGET
+  MID
+  PREMIUM
+}
+
+enum EventType {
+  WEDDING
+  BIRTHDAY
+  CORPORATE
+  GRADUATION
+  BAPTISM
+  BABY_SHOWER
+  BRIDAL_SHOWER
+  ENGAGEMENT
+  KIDS_PARTY
+  OTHER
+}
+
+enum EventStatus {
+  PLANNING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum QuoteStatus {
+  PENDING
+  RESPONDED
+  ACCEPTED
+  REJECTED
+}
