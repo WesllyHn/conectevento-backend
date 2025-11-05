@@ -1,6 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
 const AppError = require('../utils/AppError');
-
 const prisma = new PrismaClient();
 
 class EventService {
@@ -119,7 +118,6 @@ class EventService {
   // Create new event
   async createEvent(eventData) {
     try {
-      console.log('entrou aqui: ', eventData)
       const event = await prisma.event.create({
         data: eventData,
         include: {
@@ -133,10 +131,8 @@ class EventService {
           }
         }
       });
-      
       return event;
     } catch (error) {
-      console.log('Erro geral: ', error)
       if (error.code === 'P2003') {
         throw new AppError('Organizer not found', 404);
       }

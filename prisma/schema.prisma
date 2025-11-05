@@ -32,6 +32,7 @@ model User {
   portfolio             Portfolio[]
   receivedQuoteRequests QuoteRequest[]    @relation("SupplierQuotes")
   receivedReviews       Review[]          @relation("SupplierReviews")
+  roadmaps              Roadmap[]         @relation("SupplierRoadmap")
 
   @@map("users")
 }
@@ -47,9 +48,13 @@ model SupplierService {
 }
 
 model Portfolio {
-  id         String @id @default(cuid())
+  id         String   @id @default(cuid())
   supplierId String
-  imageUrl   String
+  imageData  Bytes // Armazena a imagem como BLOB
+  mimeType   String // Tipo da imagem (image/jpeg, image/png, etc)
+  fileName   String // Nome original do arquivo
+  fileSize   Int // Tamanho em bytes
+  createdAt  DateTime @default(now())
 
   supplier User @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
@@ -73,6 +78,7 @@ model Event {
   organizer     User           @relation("OrganizerEvents", fields: [organizerId], references: [id], onDelete: Cascade)
   quoteRequests QuoteRequest[]
   reviews       Review[]
+  roadmaps      Roadmap[]
 
   @@map("events")
 }
@@ -112,6 +118,24 @@ model Review {
   event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@map("reviews")
+}
+
+model Roadmap {
+  idEvent     String
+  supplierId  String?
+  category    String
+  title       String
+  description String
+  price       Float
+  status      String
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  supplier User? @relation("SupplierRoadmap", fields: [supplierId], references: [id], onDelete: Cascade)
+  event    Event @relation(fields: [idEvent], references: [id], onDelete: Cascade)
+
+  @@map("roadmaps")
 }
 
 enum UserType {

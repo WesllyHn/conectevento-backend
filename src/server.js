@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const errorHandler = require('./middleware/errorHandler');
 
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -34,18 +33,27 @@ const PORT = process.env.PORT || 3000;
 
 const userRoutes = require('./routes/user.routes');
 const eventRoutes = require('./routes/event.routes');
+const review = require('./routes/review.routes')
+const budget = require('./routes/budget.routes')
+const roadmap = require('./routes/roadmap.routes')
+const uploadRoutes = require('./routes/upload.routes')
 
 require('dotenv').config();
 app.use(cors());
 
 
 // Outros middlewares
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+// já tinha, apenas confirme:
+app.use(express.json({ limit: '20mb' })); // aumenta o limite
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/reviews', review);
+app.use('/api/budgets', budget);
+app.use('/api/roadmaps', roadmap);
+app.use('/api/upload', uploadRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -57,7 +57,6 @@ class UserService {
       const { services, portfolio, ...userMainData } = userData;
       const passwordHash = await bcrypt.hash(String(userData.password), 10);
 
-
       const user = await prisma.user.create({
         data: {
           ...userMainData,
@@ -105,12 +104,12 @@ class UserService {
       if (services !== undefined) {
         await prisma.supplierService.deleteMany({ where: { supplierId: id } });
         if (services.length > 0) {
-          await prisma.supplierService.createMany({
-            data: services.map(service => ({
-              service,
-              supplierId: id
-            }))
-          });
+        await prisma.supplierService.createMany({
+          data: services.map(item => ({
+            service: item.service,
+            supplierId: id
+          }))
+        });
         }
       }
       
@@ -119,11 +118,11 @@ class UserService {
         await prisma.portfolio.deleteMany({ where: { supplierId: id } });
         if (portfolio.length > 0) {
           await prisma.portfolio.createMany({
-            data: portfolio.map(imageUrl => ({
-              imageUrl,
-              supplierId: id
-            }))
-          });
+          data: portfolio.map(item => ({
+            imageUrl: item.imageUrl,
+            supplierId: id
+          }))
+        });
         }
       }
       

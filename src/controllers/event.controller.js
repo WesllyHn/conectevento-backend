@@ -1,5 +1,6 @@
 const eventService = require('../services/event.service');
 const { successResponse } = require('../middleware/responseHandler');
+const AppError = require('../utils/AppError');
 
 class EventController {
   // Get all events
@@ -14,7 +15,7 @@ class EventController {
       };
       
       const result = await eventService.getAllEvents(filters);
-      successResponse(res, result, 'Events retrieved successfully');
+      successResponse(res, result.events, 'Events retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -25,7 +26,7 @@ class EventController {
     try {
       const { id } = req.params;
       const event = await eventService.getEventById(id);
-      successResponse(res, event, 'Event retrieved successfully');
+      successResponse(res, event.event, 'Event retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -94,7 +95,7 @@ class EventController {
       };
       
       const result = await eventService.getEventsByOrganizer(organizerId, filters);
-      successResponse(res, result, 'Organizer events retrieved successfully');
+      successResponse(res, result.events, 'Organizer events retrieved successfully');
     } catch (error) {
       next(error);
     }
