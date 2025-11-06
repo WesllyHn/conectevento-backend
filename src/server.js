@@ -39,7 +39,18 @@ const roadmap = require('./routes/roadmap.routes')
 const uploadRoutes = require('./routes/upload.routes')
 
 require('dotenv').config();
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173/',
+    'http://localhost:4173/',
+    'https://conect-evento.vercel.app/'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Set-Cookie'],
+  optionsSuccessStatus: 200
+}));
 
 
 // Outros middlewares
