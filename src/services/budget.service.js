@@ -30,7 +30,7 @@ class BudgetService {
                     },
                     orderBy: { createdAt: 'desc' },
                     skip,
-                    take: parseInt(limit)
+                    take: Number.parseInt(limit)
                 }),
                 prisma.quoteRequest.count({ where })
             ]);
@@ -38,8 +38,8 @@ class BudgetService {
             return {
                 response,
                 pagination: {
-                    page: parseInt(page),
-                    limit: parseInt(limit),
+                    page: Number.parseInt(page),
+                    limit: Number.parseInt(limit),
                     total,
                     pages: Math.ceil(total / limit)
                 }

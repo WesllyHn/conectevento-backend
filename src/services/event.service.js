@@ -43,7 +43,7 @@ class EventService {
           },
           orderBy: { createdAt: 'desc' },
           skip,
-          take: parseInt(limit)
+          take: Number.parseInt(limit)
         }),
         prisma.event.count({ where })
       ]);
@@ -51,8 +51,8 @@ class EventService {
       return {
         events,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
           total,
           pages: Math.ceil(total / limit)
         }
@@ -273,7 +273,7 @@ class EventService {
           },
           orderBy: { date: 'asc' },
           skip,
-          take: parseInt(limit)
+          take: Number.parseInt(limit)
         }),
         prisma.event.count({ where })
       ]);
@@ -281,8 +281,8 @@ class EventService {
       return {
         events,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
           total,
           pages: Math.ceil(total / limit)
         }
@@ -317,7 +317,7 @@ class EventService {
           },
           orderBy: { date: 'asc' },
           skip,
-          take: parseInt(limit)
+          take: Number.parseInt(limit)
         }),
         prisma.event.count({ where })
       ]);
@@ -325,8 +325,8 @@ class EventService {
       return {
         events,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
           total,
           pages: Math.ceil(total / limit)
         }

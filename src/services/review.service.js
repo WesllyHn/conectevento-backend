@@ -28,7 +28,7 @@ class ReviewService {
           },
           orderBy: { createdAt: 'desc' },
           skip,
-          take: parseInt(limit)
+          take: Number.parseInt(limit)
         }),
         prisma.review.count({ where })
       ]);
@@ -36,8 +36,8 @@ class ReviewService {
       return {
         reviews,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
           total,
           pages: Math.ceil(total / limit)
         }
