@@ -5,32 +5,6 @@ const errorHandler = require('./middleware/errorHandler');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração de CORS
-// const corsOptions = {
-//   origin: function (origin, callback) {
-//     // Em desenvolvimento, permite localhost e requests sem origin
-//     if (process.env.NODE_ENV !== 'production') {
-//       return callback(null, true);
-//     }
-    
-//     // Em produção, apenas origens específicas
-//     // const allowedOrigins = [
-//     //   'https://seu-dominio.com',
-//     //   'https://www.seu-dominio.com',
-//     //   'https://app.seu-dominio.com'
-//     // ];
-    
-//     // if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-//     //   callback(null, true);
-//     // } else {
-//     //   callback(new Error('Not allowed by CORS'));
-//     // }
-//   },
-//   credentials: true,
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-// };
-
 const userRoutes = require('./routes/user.routes');
 const eventRoutes = require('./routes/event.routes');
 const review = require('./routes/review.routes')
