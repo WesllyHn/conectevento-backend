@@ -1,0 +1,53 @@
+{
+  "family": "conectevento-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::332144430820:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "conectevento-container",
+      "image": "332144430820.dkr.ecr.us-east-1.amazonaws.com/conectevento-backend:latest",
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "name": "PORT",
+          "value": "3000"
+        }
+      ],
+        "secrets": [
+        {
+            "name": "DATABASE_URL",
+            "valueFrom": "arn:aws:secretsmanager:us-east-1:332144430820:secret:conectevento/database-url-K3Fn5a"
+        }
+        ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/conectevento",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs",
+          "awslogs-create-group": "true"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})\""],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}

@@ -43,7 +43,8 @@ app.use(cors({
   origin: [
     'http://localhost:5173/',
     'http://localhost:4173/',
-    'https://conect-evento.vercel.app/'
+    'https://conectevento.hendlerweslly08.workers.dev/',
+    'https://main.delt32gvbuhjm.amplifyapp.com/'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

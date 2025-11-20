@@ -1,0 +1,50 @@
+# Build Stage
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copiar arquivos de dependências
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Instalar dependências (incluindo devDependencies para gerar Prisma)
+RUN npm ci
+
+# Gerar Prisma Client
+RUN npx prisma generate
+
+# Copiar código fonte
+COPY src ./src
+
+# Production Stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Instalar openssl (necessário para Prisma)
+RUN apk add --no-cache openssl
+
+# Copiar node_modules e arquivos necessários do builder
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/src ./src
+
+# Criar usuário não-root
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Ajustar permissões
+RUN chown -R nodejs:nodejs /app
+
+USER nodejs
+
+# Expor porta
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Comando de inicialização
+CMD ["node", "src/server.js"]
