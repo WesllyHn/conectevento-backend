@@ -3,7 +3,6 @@ const AppError = require('../utils/AppError');
 const prisma = new PrismaClient();
 
 class EventService {
-  // Get all events with optional filters
   async getAllEvents(filters = {}) {
     try {
       const { type, status, organizerId, page = 1, limit = 10 } = filters;
@@ -62,7 +61,6 @@ class EventService {
     }
   }
 
-  // Get event by ID
   async getEventById(id) {
     try {
       const event = await prisma.event.findUnique({
@@ -115,7 +113,6 @@ class EventService {
     }
   }
 
-  // Create new event
   async createEvent(eventData) {
     try {
       const event = await prisma.event.create({
@@ -140,10 +137,8 @@ class EventService {
     }
   }
 
-  // Update event
   async updateEvent(id, eventData) {
     try {
-      // Check if event exists
       const existingEvent = await prisma.event.findUnique({ where: { id } });
       if (!existingEvent) {
         throw new AppError('Event not found', 404);
@@ -185,10 +180,8 @@ class EventService {
     }
   }
 
-  // Delete event
   async deleteEvent(id) {
     try {
-      // Check if event exists
       const existingEvent = await prisma.event.findUnique({ where: { id } });
       if (!existingEvent) {
         throw new AppError('Event not found', 404);
@@ -205,16 +198,13 @@ class EventService {
     }
   }
 
-  // Update event status
   async updateEventStatus(id, status) {
     try {
-      // Check if event exists
       const existingEvent = await prisma.event.findUnique({ where: { id } });
       if (!existingEvent) {
         throw new AppError('Event not found', 404);
       }
       
-      // Validate status
       const validStatuses = ['PLANNING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
       if (!validStatuses.includes(status)) {
         throw new AppError('Invalid status value', 400);
@@ -241,7 +231,6 @@ class EventService {
     }
   }
 
-  // Get events by organizer
   async getEventsByOrganizer(organizerId, filters = {}) {
     try {
       const { status, type, page = 1, limit = 10 } = filters;
@@ -292,7 +281,6 @@ class EventService {
     }
   }
 
-  // Get events by type
   async getEventsByType(type, filters = {}) {
     try {
       const { status, page = 1, limit = 10 } = filters;

@@ -1,4 +1,3 @@
-// tests/integration/event.integration.test.js
 const request = require('supertest');
 const express = require('express');
 const eventRoutes = require('../../src/routes/event.routes');

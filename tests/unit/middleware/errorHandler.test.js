@@ -1,4 +1,3 @@
-// tests/unit/middleware/errorHandler.test.js
 const errorHandler = require('../../../src/middleware/errorHandler');
 const AppError = require('../../../src/utils/AppError');
 
@@ -13,7 +12,6 @@ describe('ErrorHandler Middleware', () => {
     };
     next = jest.fn();
     
-    // Mock console.error para não poluir os logs de teste
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 

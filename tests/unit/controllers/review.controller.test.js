@@ -1,4 +1,3 @@
-// tests/unit/controllers/review.controller.test.js
 const reviewController = require('../../../src/controllers/review.controller');
 const reviewService = require('../../../src/services/review.service');
 const { successResponse } = require('../../../src/middleware/responseHandler');
@@ -208,7 +207,7 @@ describe('ReviewController', () => {
 
       await reviewController.getAvaliable(req, res, next);
 
-      expect(reviewService.getAvaliable).toHaveBeenCalledWith(undefined); // BUG: req.params.id ao invés de req.params
+      expect(reviewService.getAvaliable).toHaveBeenCalledWith(undefined);
       expect(successResponse).toHaveBeenCalledWith(
         res,
         mockResult.fornecedores,

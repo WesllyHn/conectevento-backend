@@ -1,4 +1,3 @@
-// tests/integration/user.integration.test.js
 const request = require('supertest');
 const express = require('express');
 const userRoutes = require('../../src/routes/user.routes');

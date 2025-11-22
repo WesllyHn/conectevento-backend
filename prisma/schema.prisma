@@ -51,10 +51,10 @@ model SupplierService {
 model Portfolio {
   id         String   @id @default(cuid())
   supplierId String
-  imageData  Bytes // Armazena a imagem como BLOB
-  mimeType   String // Tipo da imagem (image/jpeg, image/png, etc)
-  fileName   String // Nome original do arquivo
-  fileSize   Int // Tamanho em bytes
+  imageData  Bytes
+  mimeType   String
+  fileName   String
+  fileSize   Int
   createdAt  DateTime @default(now())
 
   supplier User @relation(fields: [supplierId], references: [id], onDelete: Cascade)

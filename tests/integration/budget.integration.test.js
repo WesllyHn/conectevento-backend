@@ -1,14 +1,11 @@
-// tests/integration/budget.integration.test.js
 const request = require('supertest');
 const express = require('express');
 const budgetRoutes = require('../../src/routes/budget.routes');
 const errorHandler = require('../../src/middleware/errorHandler');
 const { PrismaClient } = require('@prisma/client');
 
-// Mock do Prisma já está no setup.js global
 const prisma = new PrismaClient();
 
-// Criar app Express para testes
 const createApp = () => {
   const app = express();
   app.use(express.json());
@@ -70,9 +67,6 @@ describe('Budget Integration Tests', () => {
       expect(response.body.message).toBe('Review retrieved successfully');
     });
 
-    // ⚠️ TESTE COMENTADO - BUG NO CÓDIGO: budget.controller.js linha 9
-    // const { id } = req.params.id deveria ser const { id } = req.params
-    // Por isso o id chega como undefined no service
     test('deve filtrar por SUPPLIER quando type não é ORGANIZER', async () => {
       const mockBudgets = [
         {
@@ -97,12 +91,10 @@ describe('Budget Integration Tests', () => {
       expect(response.status).toBe(200);
       expect(prisma.quoteRequest.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          // 🛑 ESPERANDO undefined DEVIDO AO BUG NO CONTROLLER
           where: { supplierId: undefined }
         })
       );
     });
-    // ...
 
     test('deve retornar erro 500 quando ocorrer erro no serviço', async () => {
       prisma.quoteRequest.findMany.mockRejectedValue(new Error('Database error'));
@@ -153,7 +145,6 @@ describe('Budget Integration Tests', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
 
-      // Compara com as datas convertidas para ISO string
       expect(response.body.data).toEqual(
         mockBudgets.map(budget => ({
           ...budget,
@@ -162,7 +153,6 @@ describe('Budget Integration Tests', () => {
         }))
       );
 
-      // Verifica que foi feita query com OR
       expect(prisma.quoteRequest.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
@@ -232,7 +222,7 @@ describe('Budget Integration Tests', () => {
 
       const response = await request(app)
         .post('/api/budgets')
-        .send({ eventId: 'event1' }); // Faltando campos obrigatórios
+        .send({ eventId: 'event1' });
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
@@ -420,8 +410,6 @@ describe('Budget Integration Tests', () => {
     });
 
     test('não deve permitir deletar orçamento de outro usuário (validação futura)', async () => {
-      // Este teste documenta uma possível melhoria de segurança
-      // Atualmente não há validação de ownership no delete
       const mockExisting = {
         id: 'quote1',
         organizerId: 'org1',
@@ -434,8 +422,7 @@ describe('Budget Integration Tests', () => {
       const response = await request(app)
         .delete('/api/budgets/quote1');
 
-      // TODO: Adicionar middleware de autenticação para validar ownership
-      expect(response.status).toBe(200); // Atualmente permite
+      expect(response.status).toBe(200);
     });
   });
 

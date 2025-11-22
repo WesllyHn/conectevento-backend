@@ -1,4 +1,3 @@
-// tests/unit/controllers/upload.controller.test.js
 const uploadController = require('../../../src/controllers/upload.controller');
 const uploadService = require('../../../src/services/upload.service');
 

@@ -5,7 +5,6 @@ const bcrypt = require("bcryptjs");
 const prisma = new PrismaClient();
 
 class UserService {
-  // Get all users
   async getAllUsers() {
     const users = await prisma.user.findMany({
       include: {
@@ -16,7 +15,6 @@ class UserService {
     return users;
   }
 
-  // Get user by ID
   async getUserById(id) {
     const user = await prisma.user.findUnique({
       where: { id },
@@ -51,7 +49,6 @@ class UserService {
     return safeUser;
   }
 
-  // Create new user
   async createUser(userData) {
     try {
       const { services, portfolio, ...userMainData } = userData;
@@ -83,24 +80,15 @@ class UserService {
     }
   }
 
-  // Update user
   async updateUser(id, userData) {
     try {
       const { services, portfolio, ...userMainData } = userData;
       
-      // Verifica se o usuário existe
       const existingUser = await prisma.user.findUnique({ where: { id } });
       if (!existingUser) {
         throw new AppError('User not found', 404);
       }
       
-      // Atualiza os dados principais
-      const user = await prisma.user.update({
-        where: { id },
-        data: userMainData
-      });
-      
-      // Atualiza serviços se fornecidos
       if (services !== undefined) {
         await prisma.supplierService.deleteMany({ where: { supplierId: id } });
         if (services.length > 0) {
@@ -113,7 +101,6 @@ class UserService {
         }
       }
       
-      // Atualiza portfolio se fornecido
       if (portfolio !== undefined) {
         await prisma.portfolio.deleteMany({ where: { supplierId: id } });
         if (portfolio.length > 0) {
@@ -126,7 +113,6 @@ class UserService {
         }
       }
       
-      // Retorna o usuário atualizado com relações
       return await this.getUserById(id);
     } catch (error) {
       if (error instanceof AppError) throw error;
@@ -134,7 +120,6 @@ class UserService {
     }
   }
 
-  // Delete user
   async deleteUser(id) {
     try {
       const user = await prisma.user.delete({
@@ -149,7 +134,6 @@ class UserService {
     }
   }
 
-  // Get all Supplier
     async getAllSupplier() {
     const users = await prisma.user.findMany({
       where: {

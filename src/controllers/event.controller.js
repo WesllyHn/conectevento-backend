@@ -3,7 +3,6 @@ const { successResponse } = require('../middleware/responseHandler');
 const AppError = require('../utils/AppError');
 
 class EventController {
-  // Get all events
   async getEvents(req, res, next) {
     try {
       const filters = {
@@ -21,18 +20,16 @@ class EventController {
     }
   }
 
-  // Get event by ID
   async getEventById(req, res, next) {
     try {
       const { id } = req.params;
       const event = await eventService.getEventById(id);
-      successResponse(res, event.event, 'Event retrieved successfully');
+      successResponse(res, event, 'Event retrieved successfully');
     } catch (error) {
       next(error);
     }
   }
 
-  // Create new event
   async createEvent(req, res, next) {
     try {
       const eventData = req.body;
@@ -43,7 +40,6 @@ class EventController {
     }
   }
 
-  // Update event
   async updateEvent(req, res, next) {
     try {
       const { id } = req.params;
@@ -55,7 +51,6 @@ class EventController {
     }
   }
 
-  // Delete event
   async deleteEvent(req, res, next) {
     try {
       const { id } = req.params;
@@ -66,7 +61,6 @@ class EventController {
     }
   }
 
-  // Update event status
   async updateEventStatus(req, res, next) {
     try {
       const { id } = req.params;
@@ -83,7 +77,6 @@ class EventController {
     }
   }
 
-  // Get events by organizer
   async getEventsByOrganizer(req, res, next) {
     try {
       const { organizerId } = req.params;
@@ -101,7 +94,6 @@ class EventController {
     }
   }
 
-  // Get events by type
   async getEventsByType(req, res, next) {
     try {
       const { type } = req.params;

@@ -1,9 +1,7 @@
-// tests/unit/controllers/budget.controller.test.js
 const budgetController = require('../../../src/controllers/budget.controller');
 const budgetService = require('../../../src/services/budget.service');
 const { successResponse } = require('../../../src/middleware/responseHandler');
 
-// Mock das dependências
 jest.mock('../../../src/services/budget.service');
 jest.mock('../../../src/middleware/responseHandler');
 
@@ -40,7 +38,7 @@ describe('BudgetController', () => {
       await budgetController.getBudget(req, res, next);
 
       expect(budgetService.getBudget).toHaveBeenCalledWith(
-        undefined, // BUG: deveria ser 'org1', mas o código está pegando req.params.id incorretamente
+        undefined,
         {
           type: 'ORGANIZER',
           page: '1',

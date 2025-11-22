@@ -1,4 +1,3 @@
-// tests/unit/utils/AppError.test.js
 const AppError = require('../../../src/utils/AppError');
 
 describe('AppError', () => {

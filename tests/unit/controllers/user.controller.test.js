@@ -1,4 +1,3 @@
-// tests/unit/controllers/user.controller.test.js
 const userController = require('../../../src/controllers/user.controller');
 const userService = require('../../../src/services/user.service');
 const { successResponse } = require('../../../src/middleware/responseHandler');

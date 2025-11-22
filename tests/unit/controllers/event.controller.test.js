@@ -1,5 +1,3 @@
-// tests/unit/controllers/event.controller.test.js
-// No início do arquivo event.controller.js, adicione:
 const eventController = require('../../../src/controllers/event.controller');
 const eventService = require('../../../src/services/event.service');
 const { successResponse } = require('../../../src/middleware/responseHandler');
@@ -63,14 +61,14 @@ describe('EventController', () => {
 
   describe('getEventById', () => {
     test('deve buscar evento por ID', async () => {
-      const mockEvent = { event: { id: 'event1', title: 'Wedding' } };
+      const mockEvent = { id: 'event1', title: 'Wedding' };
       req.params = { id: 'event1' };
       eventService.getEventById.mockResolvedValue(mockEvent);
 
       await eventController.getEventById(req, res, next);
 
       expect(eventService.getEventById).toHaveBeenCalledWith('event1');
-      expect(successResponse).toHaveBeenCalledWith(res, mockEvent.event, 'Event retrieved successfully');
+      expect(successResponse).toHaveBeenCalledWith(res, mockEvent, 'Event retrieved successfully');
     });
 
     test('deve chamar next com erro', async () => {

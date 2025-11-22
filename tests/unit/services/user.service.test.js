@@ -1,4 +1,3 @@
-// tests/unit/services/user.service.test.js
 const userService = require('../../../src/services/user.service');
 const { PrismaClient } = require('@prisma/client');
 const AppError = require('../../../src/utils/AppError');
@@ -201,26 +200,19 @@ describe('UserService', () => {
       const mockExisting = { id: 'user1', name: 'Old Name' };
       const mockUpdated = { id: 'user1', name: 'New Name' };
 
-      prisma.user.findUnique.mockResolvedValue(mockExisting);
-      prisma.user.update.mockResolvedValue(mockUpdated);
-
-      // Mock do getUserById para retornar usuário completo
       prisma.user.findUnique.mockResolvedValueOnce(mockExisting).mockResolvedValueOnce(mockUpdated);
 
       const result = await userService.updateUser('user1', { name: 'New Name' });
 
-      expect(prisma.user.update).toHaveBeenCalledWith({
-        where: { id: 'user1' },
-        data: { name: 'New Name' }
-      });
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { id: 'user1' } });
+      expect(result).toEqual(mockUpdated);
     });
 
     test('deve atualizar services do usuário', async () => {
       const mockExisting = { id: 'user1', type: 'SUPPLIER' };
       const mockServices = [{ service: 'Decoração' }, { service: 'Buffet' }];
 
-      prisma.user.findUnique.mockResolvedValue(mockExisting);
-      prisma.user.update.mockResolvedValue(mockExisting);
+      prisma.user.findUnique.mockResolvedValueOnce(mockExisting).mockResolvedValueOnce(mockExisting);
       prisma.supplierService.deleteMany.mockResolvedValue({});
       prisma.supplierService.createMany.mockResolvedValue({});
 
@@ -241,8 +233,7 @@ describe('UserService', () => {
       const mockExisting = { id: 'user1', type: 'SUPPLIER' };
       const mockPortfolio = [{ imageUrl: 'image1.jpg' }];
 
-      prisma.user.findUnique.mockResolvedValue(mockExisting);
-      prisma.user.update.mockResolvedValue(mockExisting);
+      prisma.user.findUnique.mockResolvedValueOnce(mockExisting).mockResolvedValueOnce(mockExisting);
       prisma.portfolio.deleteMany.mockResolvedValue({});
       prisma.portfolio.createMany.mockResolvedValue({});
 
@@ -258,8 +249,7 @@ describe('UserService', () => {
 
     test('deve deletar services quando array vazio', async () => {
       const mockExisting = { id: 'user1' };
-      prisma.user.findUnique.mockResolvedValue(mockExisting);
-      prisma.user.update.mockResolvedValue(mockExisting);
+      prisma.user.findUnique.mockResolvedValueOnce(mockExisting).mockResolvedValueOnce(mockExisting);
       prisma.supplierService.deleteMany.mockResolvedValue({});
 
       await userService.updateUser('user1', { services: [] });

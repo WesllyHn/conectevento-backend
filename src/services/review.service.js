@@ -114,26 +114,22 @@ class ReviewService {
     }
   }
 
-  // Função auxiliar para calcular e atualizar o rating do fornecedor
   async updateSupplierRating(supplierId) {
     try {
-      // Buscar todas as reviews do fornecedor
       const reviews = await prisma.review.findMany({
         where: { supplierId },
         select: { rating: true }
       });
 
-      // Calcular a média e o total
       const reviewCount = reviews.length;
       const averageRating = reviewCount > 0 
         ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount 
         : 0;
 
-      // Atualizar o usuário
       await prisma.user.update({
         where: { id: supplierId },
         data: {
-          rating: Math.round(averageRating * 10) / 10, // Arredonda para 1 casa decimal
+          rating: Math.round(averageRating * 10) / 10,
           reviewCount: reviewCount
         }
       });
@@ -147,13 +143,10 @@ class ReviewService {
 
   async create(body) {
     try {
-      
-      // Criar a review
       const review = await prisma.review.create({
         data: body,
       });
 
-      // Atualizar o rating e reviewCount do fornecedor
       await this.updateSupplierRating(body.supplierId);
 
       return review;
@@ -172,13 +165,11 @@ class ReviewService {
         throw new AppError('Review not found', 404);
       }
 
-      // Atualizar a review
       const update = await prisma.review.update({
         where: { id },
         data: body
       });
 
-      // Se o rating foi atualizado, recalcular o rating do fornecedor
       if (body.rating !== undefined) {
         await this.updateSupplierRating(existe.supplierId);
       }
@@ -200,12 +191,10 @@ class ReviewService {
         throw new AppError('Review not found', 404);
       }
 
-      // Deletar a review
       const deleted = await prisma.review.delete({
         where: { id }
       });
 
-      // Recalcular o rating do fornecedor após deletar
       await this.updateSupplierRating(existe.supplierId);
 
       return deleted;

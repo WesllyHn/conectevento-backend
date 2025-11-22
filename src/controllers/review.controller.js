@@ -59,18 +59,6 @@ class ReviewController {
       next(error);
     }
   }
-
-  // async responseReview(req, res, next) {
-  //   try {
-  //     const { id } = req.params;
-  //     const reviewData = req.body;
-  
-  //     const updatedResponse = await reviewService.updateResponseReview(id, reviewData);
-  //     successResponse(res, updatedResponse, 'Review status updated successfully');
-  //   } catch (error) {
-  //     next(error);
-  //   }
-  // }
 }
 
 module.exports = new ReviewController();

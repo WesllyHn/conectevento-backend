@@ -1,4 +1,3 @@
-// tests/unit/services/review.service.test.js
 const reviewService = require('../../../src/services/review.service');
 const { PrismaClient } = require('@prisma/client');
 const AppError = require('../../../src/utils/AppError');

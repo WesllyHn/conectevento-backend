@@ -3,13 +3,12 @@ const uploadService = require('../services/upload.service');
 exports.uploadImageBase64 = async (req, res) => {
   try {
     const { supplierId } = req.params;
-    const { fileName, mimeType, data } = req.body; // data = base64 string (sem "data:...;base64," prefix)
+    const { fileName, mimeType, data } = req.body;
 
     if (!fileName || !mimeType || !data) {
       return res.status(400).json({ success: false, message: 'Payload inválido. Esperado fileName, mimeType e data (base64).' });
     }
 
-    // opcional: valida tamanho (ex.: 5MB)
     const buffer = Buffer.from(data, 'base64');
     const maxSize = 5 * 1024 * 1024;
     if (buffer.length > maxSize) {
@@ -57,5 +56,22 @@ exports.getImagesBySupplier = async (req, res) => {
   } catch (error) {
     console.error('Erro ao buscar imagens:', error);
     res.status(500).json({ success: false, message: 'Erro ao buscar imagens.' });
+  }
+};
+
+exports.deleteImage = async (req, res) => {
+  try {
+    const { portfolioId } = req.params;
+    
+    const deleted = await uploadService.deleteImage(portfolioId);
+    
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: 'Imagem não encontrada.' });
+    }
+
+    return res.status(200).json({ success: true, message: 'Imagem removida com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao deletar imagem:', error);
+    return res.status(500).json({ success: false, message: 'Erro ao deletar imagem.' });
   }
 };

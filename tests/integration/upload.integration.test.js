@@ -1,4 +1,3 @@
-// tests/integration/upload.integration.test.js
 const request = require('supertest');
 const express = require('express');
 const uploadRoutes = require('../../src/routes/upload.routes');

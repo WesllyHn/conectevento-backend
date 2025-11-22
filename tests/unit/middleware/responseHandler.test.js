@@ -1,4 +1,3 @@
-// tests/unit/middleware/responseHandler.test.js
 const { successResponse, errorResponse } = require('../../../src/middleware/responseHandler');
 
 describe('ResponseHandler Middleware', () => {

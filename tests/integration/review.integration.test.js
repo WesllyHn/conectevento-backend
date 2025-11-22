@@ -1,4 +1,3 @@
-// tests/integration/review.integration.test.js
 const request = require('supertest');
 const express = require('express');
 const reviewRoutes = require('../../src/routes/review.routes');
@@ -236,10 +235,8 @@ describe('Review Integration Tests', () => {
         createdAt: new Date()
       };
 
-      // Mock para a criação da review
       prisma.review.create.mockResolvedValue(mockCreated);
       
-      // Mock para o updateSupplierRating
       prisma.review.findMany.mockResolvedValue([{ rating: 5 }]);
       prisma.user.update.mockResolvedValue({
         id: 'sup1',
@@ -299,7 +296,6 @@ describe('Review Integration Tests', () => {
       prisma.review.findUnique.mockResolvedValue(mockExisting);
       prisma.review.update.mockResolvedValue(mockUpdated);
       
-      // Mock para o updateSupplierRating
       prisma.review.findMany.mockResolvedValue([{ rating: 4 }]);
       prisma.user.update.mockResolvedValue({
         id: 'sup1',
@@ -362,7 +358,6 @@ describe('Review Integration Tests', () => {
       prisma.review.findUnique.mockResolvedValue(mockExisting);
       prisma.review.delete.mockResolvedValue(mockExisting);
       
-      // Mock para o updateSupplierRating
       prisma.review.findMany.mockResolvedValue([]);
       prisma.user.update.mockResolvedValue({
         id: 'sup1',
@@ -415,7 +410,6 @@ describe('Review Integration Tests', () => {
           eventId: 'event1'
         });
         
-        // Mock para o updateSupplierRating
         prisma.review.findMany.mockResolvedValue([{ rating }]);
         prisma.user.update.mockResolvedValue({
           id: 'sup1',

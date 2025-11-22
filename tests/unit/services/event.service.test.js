@@ -1,4 +1,3 @@
-// tests/unit/services/event.service.test.js
 const eventService = require('../../../src/services/event.service');
 const roadmapService = require('../../../src/services/roadmap.service');
 const { PrismaClient } = require('@prisma/client');

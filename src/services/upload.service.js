@@ -42,3 +42,24 @@ exports.getImagesBySupplier = async (supplierId) => {
     url: `/api/upload/${img.id}`,
   }));
 };
+
+exports.deleteImage = async (id) => {
+  try {
+    const image = await prisma.portfolio.findUnique({
+      where: { id },
+    });
+
+    if (!image) {
+      return null;
+    }
+
+    await prisma.portfolio.delete({
+      where: { id },
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Erro ao deletar imagem do banco:', error);
+    throw error;
+  }
+};

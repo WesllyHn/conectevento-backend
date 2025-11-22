@@ -1,4 +1,3 @@
-// tests/unit/services/upload.service.test.js
 const uploadService = require('../../../src/services/upload.service');
 const { PrismaClient } = require('@prisma/client');
 
@@ -291,11 +290,9 @@ describe('UploadService', () => {
 
       const result = await uploadService.getImagesBySupplier('supplier1');
 
-      // Verifica que imageData NÃO está presente
       expect(result[0]).not.toHaveProperty('imageData');
       expect(result[0]).not.toHaveProperty('supplierId');
       
-      // Verifica que apenas os campos esperados estão presentes
       expect(result[0]).toHaveProperty('id');
       expect(result[0]).toHaveProperty('fileName');
       expect(result[0]).toHaveProperty('mimeType');

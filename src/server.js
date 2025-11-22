@@ -27,13 +27,9 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
-
-// Outros middlewares
-// já tinha, apenas confirme:
-app.use(express.json({ limit: '20mb' })); // aumenta o limite
+app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
-// Routes
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/reviews', review);
@@ -41,15 +37,12 @@ app.use('/api/budgets', budget);
 app.use('/api/roadmaps', roadmap);
 app.use('/api/upload', uploadRoutes);
 
-// Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
 
-// Error handling middleware
 app.use(errorHandler);
 
-// 404 handler
 app.use(/.*/, (req, res) => {
   res.status(404).json({
     success: false,

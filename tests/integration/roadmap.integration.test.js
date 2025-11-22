@@ -1,4 +1,3 @@
-// tests/integration/roadmap.integration.test.js
 const request = require('supertest');
 const express = require('express');
 const roadmapRoutes = require('../../src/routes/roadmap.routes');

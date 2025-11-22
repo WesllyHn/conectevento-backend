@@ -5,5 +5,6 @@ const uploadController = require('../controllers/upload.controller');
 router.post('/:supplierId', uploadController.uploadImageBase64);
 router.get('/supplier/:supplierId', uploadController.getImagesBySupplier);
 router.get('/:portfolioId', uploadController.getImage);
+router.delete('/:portfolioId', uploadController.deleteImage);
 
 module.exports = router;

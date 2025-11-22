@@ -1,4 +1,3 @@
-// tests/unit/controllers/roadmap.controller.test.js
 const roadmapController = require('../../../src/controllers/roadmap.controller');
 const roadmapService = require('../../../src/services/roadmap.service');
 const { successResponse } = require('../../../src/middleware/responseHandler');
