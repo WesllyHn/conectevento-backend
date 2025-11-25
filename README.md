@@ -79,7 +79,7 @@ A segurança é um dos pilares do **ConectEvento**. As práticas implementadas v
 - **Proteção de Dados:** Hash bcrypt + armazenamento seguro
 - **Validação Rigorosa:** Checagem em todas as entradas
 - **Prevenção de Ataques:** Anti SQL Injection + CORS + Rate Limiting
-- **Monitoramento:** Logs estruturados com retenção de 6 meses
+- **Monitoramento:** Logs estruturados
 - **Backups:** Automáticos semanais com testes de restauração
 - **Testes de Segurança:** Análise de vulnerabilidades no CI/CD
 
