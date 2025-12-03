@@ -79,17 +79,20 @@ describe('UserController', () => {
 
   describe('loginUser', () => {
     test('deve fazer login com sucesso', async () => {
-      const mockUser = { id: 'user1', name: 'Test', email: 'test@test.com' };
+      const mockLoginResult = { 
+        user: { id: 'user1', name: 'Test', email: 'test@test.com' },
+        token: 'mock-token'
+      };
       req.query = { email: 'test@test.com', password: 'password123' };
 
-      userService.loginUser.mockResolvedValue(mockUser);
+      userService.loginUser.mockResolvedValue(mockLoginResult);
 
       await userController.loginUser(req, res, next);
 
       expect(userService.loginUser).toHaveBeenCalledWith('test@test.com', 'password123');
       expect(successResponse).toHaveBeenCalledWith(
         res,
-        mockUser,
+        mockLoginResult,
         'login successfully'
       );
       expect(next).not.toHaveBeenCalled();

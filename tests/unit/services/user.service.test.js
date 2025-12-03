@@ -85,8 +85,10 @@ describe('UserService', () => {
         where: { email: 'test@test.com' }
       });
       expect(bcrypt.compare).toHaveBeenCalledWith('password123', 'hashedpassword');
-      expect(result).not.toHaveProperty('password');
-      expect(result.email).toBe('test@test.com');
+      expect(result).toHaveProperty('user');
+      expect(result).toHaveProperty('token');
+      expect(result.user).not.toHaveProperty('password');
+      expect(result.user.email).toBe('test@test.com');
     });
 
     test('deve lançar AppError 404 quando usuário não existe', async () => {

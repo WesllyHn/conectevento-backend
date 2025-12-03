@@ -5,6 +5,16 @@ const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+// Mock do middleware de autenticação
+jest.mock('../../src/middleware/auth.middleware', () => ({
+  authenticateToken: (req, res, next) => {
+    req.user = { id: 'user1', type: 'SUPPLIER' };
+    next();
+  },
+  requireUserType: jest.fn(),
+  requireOwnership: jest.fn()
+}));
+
 const createApp = () => {
   const app = express();
   app.use(express.json({ limit: '10mb' }));

@@ -23,9 +23,14 @@ class UserController {
   async loginUser(req, res, next) {
     try {
       const email = req.query.email;
-      const passWord = req.query.password
-      const user = await userService.loginUser(email, passWord);
-      successResponse(res, user, 'login successfully');
+      const passWord = req.query.password;
+      const loginResult = await userService.loginUser(email, passWord);
+      
+      if (!loginResult || !loginResult.user || !loginResult.token) {
+        throw new Error('Erro ao processar login: resultado inválido');
+      }
+      
+      successResponse(res, loginResult, 'login successfully');
     } catch (error) {
       next(error);
     }

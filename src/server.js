@@ -15,8 +15,8 @@ const uploadRoutes = require('./routes/upload.routes')
 require('dotenv').config();
 app.use(cors({
   origin: [
-    'http://localhost:5173/',
-    'http://localhost:4173/',
+    'http://localhost:5173',
+    'http://localhost:4173',
     'https://conectevento.hendlerweslly08.workers.dev/',
     'https://main.delt32gvbuhjm.amplifyapp.com/'
   ],

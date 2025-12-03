@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const AppError = require('../utils/AppError');
 const bcrypt = require("bcryptjs");
+const jwt = require('jsonwebtoken');
 
 const prisma = new PrismaClient();
 
@@ -45,8 +46,44 @@ class UserService {
     
     if(!validate) throw new AppError('Usuário/ senha inválidos', 404)
     
+    // Valida se JWT_SECRET está configurado
+    const secret = process.env.JWT_SECRET;
+    if (!secret || secret.trim() === '') {
+      throw new AppError('JWT_SECRET não configurado. Configure a variável de ambiente JWT_SECRET.', 500);
+    }
+    
+    const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+    
+    let token;
+    try {
+      token = jwt.sign(
+        { 
+          id: user.id, 
+          email: user.email,
+          type: user.type,
+          name: user.name
+        },
+        secret,
+        { expiresIn }
+      );
+    } catch (error) {
+      console.error('Erro ao gerar token JWT:', error.message);
+      throw new AppError('Erro ao gerar token de autenticação', 500);
+    }
+    
+    // Garantir que o token foi gerado
+    if (!token) {
+      throw new AppError('Erro ao gerar token de autenticação', 500);
+    }
+    
     const { password, ...safeUser } = user;
-    return safeUser;
+    
+    const result = {
+      user: safeUser,
+      token
+    };
+    
+    return result;
   }
 
   async createUser(userData) {

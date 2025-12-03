@@ -1,6 +1,11 @@
 # Dockerfile (dev) — ConectEvento
 FROM node:20-alpine
  
+# Instala OpenSSL (necessário para Prisma)
+# Instala openssl e tenta instalar openssl1.1-compat se disponível
+RUN apk add --no-cache openssl && \
+    (apk add --no-cache openssl1.1-compat 2>/dev/null || true)
+ 
 # Diretório de trabalho no container
 WORKDIR /app
  
