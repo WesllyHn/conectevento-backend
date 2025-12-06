@@ -52,9 +52,19 @@ class ReviewController {
 
   async getAvaliable(req, res, next) {
     try {
-      const { id } = req.params.id
+      const { id } = req.params;
       const result = await reviewService.getAvaliable(id);
       successResponse(res, result.fornecedores, 'Review retrieved successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAvaliableByAuth(req, res, next) {
+    try {
+      const organizadorId = req.user.id;
+      const result = await reviewService.getAvaliable(organizadorId);
+      successResponse(res, result.fornecedores, 'Fornecedores disponíveis para avaliar recuperados com sucesso');
     } catch (error) {
       next(error);
     }

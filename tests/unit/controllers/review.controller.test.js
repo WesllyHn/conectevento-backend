@@ -207,7 +207,7 @@ describe('ReviewController', () => {
 
       await reviewController.getAvaliable(req, res, next);
 
-      expect(reviewService.getAvaliable).toHaveBeenCalledWith(undefined);
+      expect(reviewService.getAvaliable).toHaveBeenCalledWith('org1');
       expect(successResponse).toHaveBeenCalledWith(
         res,
         mockResult.fornecedores,

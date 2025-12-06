@@ -99,6 +99,11 @@ describe('ReviewService', () => {
 
   describe('getAvaliable', () => {
     test('deve retornar fornecedores disponíveis para avaliar', async () => {
+      const mockOrganizador = {
+        id: 'org1',
+        type: 'ORGANIZER'
+      };
+
       const mockEventos = [
         {
           id: 'event1',
@@ -121,6 +126,7 @@ describe('ReviewService', () => {
         }
       ];
 
+      prisma.user.findUnique.mockResolvedValue(mockOrganizador);
       prisma.event.findMany.mockResolvedValue(mockEventos);
 
       const result = await reviewService.getAvaliable('org1');
@@ -161,6 +167,11 @@ describe('ReviewService', () => {
     });
 
     test('deve filtrar fornecedores já avaliados', async () => {
+      const mockOrganizador = {
+        id: 'org1',
+        type: 'ORGANIZER'
+      };
+
       const mockEventos = [
         {
           id: 'event1',
@@ -173,12 +184,14 @@ describe('ReviewService', () => {
           reviews: [
             {
               supplierId: 'sup1',
-              organizerId: 'org1'
+              organizerId: 'org1',
+              eventId: 'event1'
             }
           ]
         }
       ];
 
+      prisma.user.findUnique.mockResolvedValue(mockOrganizador);
       prisma.event.findMany.mockResolvedValue(mockEventos);
 
       const result = await reviewService.getAvaliable('org1');
@@ -187,6 +200,12 @@ describe('ReviewService', () => {
     });
 
     test('deve retornar array vazio quando não há eventos', async () => {
+      const mockOrganizador = {
+        id: 'org1',
+        type: 'ORGANIZER'
+      };
+
+      prisma.user.findUnique.mockResolvedValue(mockOrganizador);
       prisma.event.findMany.mockResolvedValue([]);
 
       const result = await reviewService.getAvaliable('org1');
@@ -195,6 +214,11 @@ describe('ReviewService', () => {
     });
 
     test('deve retornar array vazio quando todos já foram avaliados', async () => {
+      const mockOrganizador = {
+        id: 'org1',
+        type: 'ORGANIZER'
+      };
+
       const mockEventos = [
         {
           id: 'event1',
@@ -203,6 +227,7 @@ describe('ReviewService', () => {
         }
       ];
 
+      prisma.user.findUnique.mockResolvedValue(mockOrganizador);
       prisma.event.findMany.mockResolvedValue(mockEventos);
 
       const result = await reviewService.getAvaliable('org1');

@@ -49,6 +49,18 @@ class ReviewService {
 
   async getAvaliable(id) {
     try {
+      const organizador = await prisma.user.findUnique({
+        where: { id },
+        select: { id: true, type: true }
+      });
+
+      if (!organizador) {
+        throw new AppError('Organizador não encontrado', 404);
+      }
+
+      if (organizador.type !== 'ORGANIZER') {
+        throw new AppError('Usuário não é um organizador', 403);
+      }
       const eventos = await prisma.event.findMany({
         where: {
           organizerId: id,
@@ -70,6 +82,7 @@ class ReviewService {
           }
         }
       });
+
       if (!eventos || eventos.length === 0) {
         return {fornecedores: []};
       }
@@ -80,7 +93,9 @@ class ReviewService {
         evento.roadmaps.forEach(roadmap => {
           if (roadmap.supplierId) {
             const jaAvaliado = evento.reviews.some(
-              review => review.supplierId === roadmap.supplierId
+              review => review.supplierId === roadmap.supplierId && 
+                       review.organizerId === id && 
+                       review.eventId === evento.id
             );
 
             if (!jaAvaliado) {

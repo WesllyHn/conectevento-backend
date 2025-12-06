@@ -137,6 +137,11 @@ describe('Review Integration Tests', () => {
 
   describe('GET /api/reviews/organizadorId/:id', () => {
     test('deve retornar fornecedores disponíveis para avaliar', async () => {
+      const mockOrganizador = {
+        id: 'org1',
+        type: 'ORGANIZER'
+      };
+
       const mockEventos = [
         {
           id: 'event1',
@@ -159,6 +164,7 @@ describe('Review Integration Tests', () => {
         }
       ];
 
+      prisma.user.findUnique.mockResolvedValue(mockOrganizador);
       prisma.event.findMany.mockResolvedValue(mockEventos);
 
       const response = await request(app)
@@ -180,6 +186,12 @@ describe('Review Integration Tests', () => {
     });
 
     test('deve retornar array vazio quando não há fornecedores disponíveis', async () => {
+      const mockOrganizador = {
+        id: 'org1',
+        type: 'ORGANIZER'
+      };
+
+      prisma.user.findUnique.mockResolvedValue(mockOrganizador);
       prisma.event.findMany.mockResolvedValue([]);
 
       const response = await request(app)
@@ -191,6 +203,11 @@ describe('Review Integration Tests', () => {
     });
 
     test('deve filtrar fornecedores já avaliados', async () => {
+      const mockOrganizador = {
+        id: 'org1',
+        type: 'ORGANIZER'
+      };
+
       const mockEventos = [
         {
           id: 'event1',
@@ -203,12 +220,14 @@ describe('Review Integration Tests', () => {
           reviews: [
             {
               supplierId: 'sup1',
-              organizerId: 'org1'
+              organizerId: 'org1',
+              eventId: 'event1'
             }
           ]
         }
       ];
 
+      prisma.user.findUnique.mockResolvedValue(mockOrganizador);
       prisma.event.findMany.mockResolvedValue(mockEventos);
 
       const response = await request(app)
@@ -473,11 +492,21 @@ describe('Review Integration Tests', () => {
     });
 
     test('deve incluir supplier nos roadmaps ao buscar fornecedores disponíveis', async () => {
+      const mockOrganizador = {
+        id: 'org1',
+        type: 'ORGANIZER'
+      };
+
+      prisma.user.findUnique.mockResolvedValue(mockOrganizador);
       prisma.event.findMany.mockResolvedValue([]);
 
       await request(app)
         .get('/api/reviews/organizadorId/org1');
 
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { id: 'org1' },
+        select: { id: true, type: true }
+      });
       expect(prisma.event.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           include: expect.objectContaining({
