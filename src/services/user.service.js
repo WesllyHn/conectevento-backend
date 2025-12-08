@@ -222,8 +222,7 @@ class UserService {
       });
 
       if (!user) {
-        console.log(`Tentativa de recuperação de senha para email não cadastrado: ${normalizedEmail}`);
-        return { success: true };
+        throw new AppError('Email não encontrado', 404);
       }
 
       const maxAttempts = parseInt(process.env.PASSWORD_RESET_MAX_ATTEMPTS || '3');
@@ -240,8 +239,7 @@ class UserService {
       });
 
       if (recentTokens >= maxAttempts) {
-        console.log(`Rate limit excedido para email: ${normalizedEmail}`);
-        return { success: true };
+        throw new AppError('Muitas tentativas. Tente novamente mais tarde', 429);
       }
 
       await prisma.passwordResetToken.updateMany({
@@ -277,8 +275,11 @@ class UserService {
 
       return { success: true };
     } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
       console.error('Erro em forgotPassword:', error);
-      return { success: true };
+      throw new AppError('Erro ao processar solicitação de recuperação de senha', 500);
     }
   }
 

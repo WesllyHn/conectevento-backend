@@ -378,9 +378,9 @@ describe('User Integration Tests', () => {
         .post('/api/users/forgot-password')
         .send({ email: 'nonexistent@test.com' });
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('Email de recuperação enviado com sucesso');
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Email não encontrado');
     });
 
     test('deve retornar erro 400 quando email não é fornecido', async () => {
@@ -407,8 +407,9 @@ describe('User Integration Tests', () => {
         .post('/api/users/forgot-password')
         .send({ email: 'test@test.com' });
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
+      expect(response.status).toBe(429);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Muitas tentativas. Tente novamente mais tarde');
       expect(prisma.passwordResetToken.create).not.toHaveBeenCalled();
     });
 

@@ -340,9 +340,9 @@ describe('UserService', () => {
     test('deve retornar sucesso mesmo quando email não existe (proteção contra enumeração)', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      const result = await userService.forgotPassword('nonexistent@test.com');
-
-      expect(result).toEqual({ success: true });
+      await expect(userService.forgotPassword('nonexistent@test.com')).rejects.toThrow(AppError);
+      await expect(userService.forgotPassword('nonexistent@test.com')).rejects.toThrow('Email não encontrado');
+      
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { email: 'nonexistent@test.com' }
       });
@@ -423,9 +423,9 @@ describe('UserService', () => {
       prisma.user.findUnique.mockResolvedValue(mockUser);
       prisma.passwordResetToken.count.mockResolvedValue(3); // Máximo atingido
 
-      const result = await userService.forgotPassword('test@test.com');
-
-      expect(result).toEqual({ success: true });
+      await expect(userService.forgotPassword('test@test.com')).rejects.toThrow(AppError);
+      await expect(userService.forgotPassword('test@test.com')).rejects.toThrow('Muitas tentativas. Tente novamente mais tarde');
+      
       expect(prisma.passwordResetToken.create).not.toHaveBeenCalled();
     });
 
@@ -439,9 +439,8 @@ describe('UserService', () => {
     test('deve retornar sucesso mesmo em caso de erro', async () => {
       prisma.user.findUnique.mockRejectedValue(new Error('Database error'));
 
-      const result = await userService.forgotPassword('test@test.com');
-
-      expect(result).toEqual({ success: true });
+      await expect(userService.forgotPassword('test@test.com')).rejects.toThrow(AppError);
+      await expect(userService.forgotPassword('test@test.com')).rejects.toThrow('Erro ao processar solicitação de recuperação de senha');
     });
 
     test('deve normalizar email para lowercase', async () => {
