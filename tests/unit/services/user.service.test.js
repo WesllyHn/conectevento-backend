@@ -152,7 +152,8 @@ describe('UserService', () => {
           portfolio: true
         }
       });
-      expect(result).toEqual(mockCreated);
+      const { password, ...expectedResult } = mockCreated;
+      expect(result).toEqual(expectedResult);
     });
 
     test('deve criar usuário com services e portfolio', async () => {
@@ -315,13 +316,16 @@ describe('UserService', () => {
       const result = await userService.getAllSupplier();
 
       expect(prisma.user.findMany).toHaveBeenCalledWith({
-        where: { type: 'SUPPLIER' },
+        where: { 
+          type: 'SUPPLIER',
+          availability: true
+        },
         include: {
           services: true,
           portfolio: true
         }
       });
-      expect(result).toEqual(mockSuppliers);
+      expect(result).toEqual(mockSuppliers.map(({ password, ...user }) => user));
     });
   });
 });

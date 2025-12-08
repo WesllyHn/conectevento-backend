@@ -13,7 +13,7 @@ class UserService {
         portfolio: true
       }
     });
-    return users;
+    return users.map(({ password, ...user }) => user);
   }
 
   async getUserById(id) {
@@ -32,7 +32,8 @@ class UserService {
       throw new AppError('User not found', 404);
     }
     
-    return user;
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
   async loginUser(email, passWord) {
     const user = await prisma.user.findUnique({
@@ -91,6 +92,10 @@ class UserService {
       const { services, portfolio, ...userMainData } = userData;
       const passwordHash = await bcrypt.hash(String(userData.password), 10);
 
+      if (userMainData.type === 'SUPPLIER' && userMainData.availability === undefined) {
+        userMainData.availability = false;
+      }
+
       const user = await prisma.user.create({
         data: {
           ...userMainData,
@@ -108,7 +113,8 @@ class UserService {
         }
       });
       
-      return user;
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
     } catch (error) {
       if (error.code === 'P2002') {
         throw new AppError('Email already exists', 409);
@@ -124,6 +130,17 @@ class UserService {
       const existingUser = await prisma.user.findUnique({ where: { id } });
       if (!existingUser) {
         throw new AppError('User not found', 404);
+      }
+      
+      if (userMainData.cnpjOrCpf === '') {
+        userMainData.cnpjOrCpf = null;
+      }
+      
+      if (Object.keys(userMainData).length > 0) {
+        await prisma.user.update({
+          where: { id },
+          data: userMainData
+        });
       }
       
       if (services !== undefined) {
@@ -162,7 +179,8 @@ class UserService {
       const user = await prisma.user.delete({
         where: { id }
       });
-      return user;
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
     } catch (error) {
       if (error.code === 'P2025') {
         throw new AppError('User not found', 404);
@@ -174,14 +192,15 @@ class UserService {
     async getAllSupplier() {
     const users = await prisma.user.findMany({
       where: {
-        type: 'SUPPLIER'
+        type: 'SUPPLIER',
+        availability: true,
       },
       include: {
         services: true,
         portfolio: true
       }
     });
-    return users;
+    return users.map(({ password, ...user }) => user);
   }
 }
 

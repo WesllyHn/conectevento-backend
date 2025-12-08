@@ -300,7 +300,10 @@ describe('User Integration Tests', () => {
       expect(response.body.message).toBe('Users retrieved successfully');
       expect(prisma.user.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { type: 'SUPPLIER' }
+          where: { 
+            type: 'SUPPLIER',
+            availability: true
+          }
         })
       );
     });
