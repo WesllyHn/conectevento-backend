@@ -75,6 +75,54 @@ class UserController {
       next(error);
     }
   }
+
+  async forgotPassword(req, res, next) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email é obrigatório',
+          data: null
+        });
+      }
+
+      await userService.forgotPassword(email);
+      
+      successResponse(res, null, 'Email de recuperação enviado com sucesso');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetPassword(req, res, next) {
+    try {
+      const { token, newPassword } = req.body;
+
+      if (!token) {
+        return res.status(400).json({
+          success: false,
+          message: 'Token é obrigatório',
+          data: null
+        });
+      }
+
+      if (!newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: 'Nova senha é obrigatória',
+          data: null
+        });
+      }
+
+      await userService.resetPassword(token, newPassword);
+      
+      successResponse(res, null, 'Senha redefinida com sucesso');
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new UserController();

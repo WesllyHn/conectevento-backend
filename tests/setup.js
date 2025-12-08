@@ -4,6 +4,10 @@ process.env.NODE_ENV = 'test';
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db';
 process.env.JWT_SECRET = 'test-secret-key';
 process.env.PORT = '3001';
+process.env.PASSWORD_RESET_TOKEN_EXPIRY = '1';
+process.env.PASSWORD_RESET_MAX_ATTEMPTS = '3';
+process.env.PASSWORD_RESET_WINDOW_HOURS = '1';
+process.env.FRONTEND_URL = 'http://localhost:5173';
 
 jest.mock('@prisma/client', () => {
   const mockPrismaClient = {
@@ -61,6 +65,15 @@ jest.mock('@prisma/client', () => {
       createMany: jest.fn(),
       delete: jest.fn(),
       deleteMany: jest.fn(),
+    },
+    passwordResetToken: {
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
     },
     $connect: jest.fn(),
     $disconnect: jest.fn(),

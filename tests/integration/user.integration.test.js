@@ -4,9 +4,11 @@ const userRoutes = require('../../src/routes/user.routes');
 const errorHandler = require('../../src/middleware/errorHandler');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
+const emailService = require('../../src/services/email.service');
 
 const prisma = new PrismaClient();
 jest.mock('bcryptjs');
+jest.mock('../../src/services/email.service');
 
 // Mock do middleware de autenticação
 jest.mock('../../src/middleware/auth.middleware', () => ({
@@ -327,6 +329,351 @@ describe('User Integration Tests', () => {
 
         expect(response.status).toBe(201);
       }
+    });
+  });
+
+  describe('POST /api/users/forgot-password', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      emailService.sendPasswordResetEmail = jest.fn().mockResolvedValue({});
+    });
+
+    test('deve retornar sucesso quando email existe', async () => {
+      const mockUser = {
+        id: 'user1',
+        email: 'test@test.com',
+        name: 'Test User',
+        type: 'ORGANIZER'
+      };
+
+      const mockToken = {
+        id: 'token1',
+        userId: 'user1',
+        token: 'generated-token',
+        expiresAt: new Date(),
+        used: false
+      };
+
+      prisma.user.findUnique.mockResolvedValue(mockUser);
+      prisma.passwordResetToken.count.mockResolvedValue(0);
+      prisma.passwordResetToken.updateMany.mockResolvedValue({});
+      prisma.passwordResetToken.create.mockResolvedValue(mockToken);
+
+      const response = await request(app)
+        .post('/api/users/forgot-password')
+        .send({ email: 'test@test.com' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Email de recuperação enviado com sucesso');
+      expect(response.body.data).toBe(null);
+      expect(prisma.passwordResetToken.create).toHaveBeenCalled();
+      expect(emailService.sendPasswordResetEmail).toHaveBeenCalled();
+    });
+
+    test('deve retornar sucesso mesmo quando email não existe (proteção contra enumeração)', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      const response = await request(app)
+        .post('/api/users/forgot-password')
+        .send({ email: 'nonexistent@test.com' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Email de recuperação enviado com sucesso');
+    });
+
+    test('deve retornar erro 400 quando email não é fornecido', async () => {
+      const response = await request(app)
+        .post('/api/users/forgot-password')
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Email é obrigatório');
+    });
+
+    test('deve respeitar rate limiting', async () => {
+      const mockUser = {
+        id: 'user1',
+        email: 'test@test.com',
+        name: 'Test User'
+      };
+
+      prisma.user.findUnique.mockResolvedValue(mockUser);
+      prisma.passwordResetToken.count.mockResolvedValue(3); // Máximo atingido
+
+      const response = await request(app)
+        .post('/api/users/forgot-password')
+        .send({ email: 'test@test.com' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(prisma.passwordResetToken.create).not.toHaveBeenCalled();
+    });
+
+    test('deve invalidar tokens anteriores ao gerar novo', async () => {
+      const mockUser = {
+        id: 'user1',
+        email: 'test@test.com',
+        name: 'Test User'
+      };
+
+      const mockToken = {
+        id: 'token1',
+        userId: 'user1',
+        token: 'new-token',
+        expiresAt: new Date(),
+        used: false
+      };
+
+      prisma.user.findUnique.mockResolvedValue(mockUser);
+      prisma.passwordResetToken.count.mockResolvedValue(0);
+      prisma.passwordResetToken.updateMany.mockResolvedValue({});
+      prisma.passwordResetToken.create.mockResolvedValue(mockToken);
+
+      await request(app)
+        .post('/api/users/forgot-password')
+        .send({ email: 'test@test.com' });
+
+      expect(prisma.passwordResetToken.updateMany).toHaveBeenCalledWith({
+        where: {
+          userId: 'user1',
+          used: false,
+          expiresAt: {
+            gt: expect.any(Date)
+          }
+        },
+        data: {
+          used: true
+        }
+      });
+    });
+  });
+
+  describe('POST /api/users/reset-password', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      emailService.sendPasswordResetConfirmationEmail = jest.fn().mockResolvedValue({});
+    });
+
+    test('deve redefinir senha com token válido', async () => {
+      const mockToken = {
+        id: 'token1',
+        userId: 'user1',
+        token: 'valid-token',
+        expiresAt: new Date(Date.now() + 3600000), // 1 hora no futuro
+        used: false,
+        user: {
+          id: 'user1',
+          email: 'test@test.com',
+          name: 'Test User',
+          password: 'old-hashed-password'
+        }
+      };
+
+      prisma.passwordResetToken.findUnique.mockResolvedValue(mockToken);
+      bcrypt.compare.mockResolvedValue(false); // Nova senha diferente
+      bcrypt.hash.mockResolvedValue('new-hashed-password');
+      prisma.user.update.mockResolvedValue({});
+      prisma.passwordResetToken.update.mockResolvedValue({});
+      prisma.passwordResetToken.updateMany.mockResolvedValue({});
+
+      const response = await request(app)
+        .post('/api/users/reset-password')
+        .send({
+          token: 'valid-token',
+          newPassword: 'newPassword123'
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Senha redefinida com sucesso');
+      expect(response.body.data).toBe(null);
+      expect(bcrypt.hash).toHaveBeenCalledWith('newPassword123', 10);
+      expect(prisma.user.update).toHaveBeenCalled();
+      expect(emailService.sendPasswordResetConfirmationEmail).toHaveBeenCalled();
+    });
+
+    test('deve retornar erro 400 quando token não existe', async () => {
+      prisma.passwordResetToken.findUnique.mockResolvedValue(null);
+
+      const response = await request(app)
+        .post('/api/users/reset-password')
+        .send({
+          token: 'invalid-token',
+          newPassword: 'newPassword123'
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Token inválido ou expirado');
+    });
+
+    test('deve retornar erro 400 quando token já foi usado', async () => {
+      const mockToken = {
+        id: 'token1',
+        userId: 'user1',
+        token: 'used-token',
+        expiresAt: new Date(Date.now() + 3600000),
+        used: true,
+        user: {
+          id: 'user1',
+          email: 'test@test.com',
+          password: 'old-password'
+        }
+      };
+
+      prisma.passwordResetToken.findUnique.mockResolvedValue(mockToken);
+
+      const response = await request(app)
+        .post('/api/users/reset-password')
+        .send({
+          token: 'used-token',
+          newPassword: 'newPassword123'
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Este link de recuperação já foi utilizado');
+    });
+
+    test('deve retornar erro 400 quando token expirou', async () => {
+      const mockToken = {
+        id: 'token1',
+        userId: 'user1',
+        token: 'expired-token',
+        expiresAt: new Date(Date.now() - 3600000), // 1 hora no passado
+        used: false,
+        user: {
+          id: 'user1',
+          email: 'test@test.com',
+          password: 'old-password'
+        }
+      };
+
+      prisma.passwordResetToken.findUnique.mockResolvedValue(mockToken);
+      prisma.passwordResetToken.update.mockResolvedValue({});
+
+      const response = await request(app)
+        .post('/api/users/reset-password')
+        .send({
+          token: 'expired-token',
+          newPassword: 'newPassword123'
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Token inválido ou expirado');
+    });
+
+    test('deve retornar erro 400 quando senha tem menos de 6 caracteres', async () => {
+      const response = await request(app)
+        .post('/api/users/reset-password')
+        .send({
+          token: 'valid-token',
+          newPassword: '12345'
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('A senha deve ter no mínimo 6 caracteres');
+    });
+
+    test('deve retornar erro 400 quando nova senha é igual à senha atual', async () => {
+      const mockToken = {
+        id: 'token1',
+        userId: 'user1',
+        token: 'valid-token',
+        expiresAt: new Date(Date.now() + 3600000),
+        used: false,
+        user: {
+          id: 'user1',
+          email: 'test@test.com',
+          password: 'old-hashed-password'
+        }
+      };
+
+      prisma.passwordResetToken.findUnique.mockResolvedValue(mockToken);
+      bcrypt.compare.mockResolvedValue(true); // Nova senha igual à antiga
+
+      const response = await request(app)
+        .post('/api/users/reset-password')
+        .send({
+          token: 'valid-token',
+          newPassword: 'samePassword'
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('A nova senha deve ser diferente da senha atual');
+    });
+
+    test('deve retornar erro 400 quando token não é fornecido', async () => {
+      const response = await request(app)
+        .post('/api/users/reset-password')
+        .send({
+          newPassword: 'newPassword123'
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Token é obrigatório');
+    });
+
+    test('deve retornar erro 400 quando nova senha não é fornecida', async () => {
+      const response = await request(app)
+        .post('/api/users/reset-password')
+        .send({
+          token: 'valid-token'
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Nova senha é obrigatória');
+    });
+
+    test('deve invalidar outros tokens do mesmo usuário após redefinição', async () => {
+      const mockToken = {
+        id: 'token1',
+        userId: 'user1',
+        token: 'valid-token',
+        expiresAt: new Date(Date.now() + 3600000),
+        used: false,
+        user: {
+          id: 'user1',
+          email: 'test@test.com',
+          name: 'Test User',
+          password: 'old-hashed-password'
+        }
+      };
+
+      prisma.passwordResetToken.findUnique.mockResolvedValue(mockToken);
+      bcrypt.compare.mockResolvedValue(false);
+      bcrypt.hash.mockResolvedValue('new-hashed-password');
+      prisma.user.update.mockResolvedValue({});
+      prisma.passwordResetToken.update.mockResolvedValue({});
+      prisma.passwordResetToken.updateMany.mockResolvedValue({});
+
+      await request(app)
+        .post('/api/users/reset-password')
+        .send({
+          token: 'valid-token',
+          newPassword: 'newPassword123'
+        });
+
+      expect(prisma.passwordResetToken.updateMany).toHaveBeenCalledWith({
+        where: {
+          userId: 'user1',
+          used: false,
+          id: {
+            not: 'token1'
+          }
+        },
+        data: {
+          used: true
+        }
+      });
     });
   });
 });

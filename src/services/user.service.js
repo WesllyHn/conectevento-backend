@@ -2,6 +2,8 @@ const { PrismaClient } = require('@prisma/client');
 const AppError = require('../utils/AppError');
 const bcrypt = require("bcryptjs");
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const emailService = require('./email.service');
 
 const prisma = new PrismaClient();
 
@@ -201,6 +203,166 @@ class UserService {
       }
     });
     return users.map(({ password, ...user }) => user);
+  }
+
+  generateResetToken() {
+    return crypto.randomBytes(32).toString('hex');
+  }
+
+  async forgotPassword(email) {
+    try {
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        return { success: true };
+      }
+
+      const normalizedEmail = email.toLowerCase().trim();
+
+      const user = await prisma.user.findUnique({
+        where: { email: normalizedEmail }
+      });
+
+      if (!user) {
+        console.log(`Tentativa de recuperação de senha para email não cadastrado: ${normalizedEmail}`);
+        return { success: true };
+      }
+
+      const maxAttempts = parseInt(process.env.PASSWORD_RESET_MAX_ATTEMPTS || '3');
+      const windowHours = parseInt(process.env.PASSWORD_RESET_WINDOW_HOURS || '1');
+      const windowStart = new Date(Date.now() - windowHours * 60 * 60 * 1000);
+
+      const recentTokens = await prisma.passwordResetToken.count({
+        where: {
+          userId: user.id,
+          createdAt: {
+            gte: windowStart
+          }
+        }
+      });
+
+      if (recentTokens >= maxAttempts) {
+        console.log(`Rate limit excedido para email: ${normalizedEmail}`);
+        return { success: true };
+      }
+
+      await prisma.passwordResetToken.updateMany({
+        where: {
+          userId: user.id,
+          used: false,
+          expiresAt: {
+            gt: new Date()
+          }
+        },
+        data: {
+          used: true
+        }
+      });
+
+      const token = this.generateResetToken();
+      const expiryHours = parseInt(process.env.PASSWORD_RESET_TOKEN_EXPIRY || '1');
+      const expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000);
+
+      await prisma.passwordResetToken.create({
+        data: {
+          userId: user.id,
+          token,
+          expiresAt
+        }
+      });
+
+      try {
+        await emailService.sendPasswordResetEmail(user.email, token, user.name);
+      } catch (emailError) {
+        console.error('Erro ao enviar email de recuperação:', emailError);
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Erro em forgotPassword:', error);
+      return { success: true };
+    }
+  }
+
+  async resetPassword(token, newPassword) {
+    try {
+      if (!token || typeof token !== 'string' || token.trim() === '') {
+        throw new AppError('Token inválido ou expirado', 400);
+      }
+
+      if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 6) {
+        throw new AppError('A senha deve ter no mínimo 6 caracteres', 400);
+      }
+
+      const normalizedToken = token.trim();
+
+      const resetToken = await prisma.passwordResetToken.findUnique({
+        where: { token: normalizedToken },
+        include: {
+          user: true
+        }
+      });
+
+      if (!resetToken) {
+        throw new AppError('Token inválido ou expirado', 400);
+      }
+
+      if (resetToken.used) {
+        throw new AppError('Este link de recuperação já foi utilizado', 400);
+      }
+
+      if (new Date() > resetToken.expiresAt) {
+        await prisma.passwordResetToken.update({
+          where: { id: resetToken.id },
+          data: { used: true }
+        });
+        throw new AppError('Token inválido ou expirado', 400);
+      }
+
+      const isSamePassword = await bcrypt.compare(newPassword, resetToken.user.password);
+      if (isSamePassword) {
+        throw new AppError('A nova senha deve ser diferente da senha atual', 400);
+      }
+
+      const passwordHash = await bcrypt.hash(newPassword, 10);
+
+      await prisma.user.update({
+        where: { id: resetToken.userId },
+        data: { password: passwordHash }
+      });
+
+      await prisma.passwordResetToken.update({
+        where: { id: resetToken.id },
+        data: { used: true }
+      });
+
+      await prisma.passwordResetToken.updateMany({
+        where: {
+          userId: resetToken.userId,
+          used: false,
+          id: {
+            not: resetToken.id
+          }
+        },
+        data: {
+          used: true
+        }
+      });
+
+      try {
+        await emailService.sendPasswordResetConfirmationEmail(
+          resetToken.user.email,
+          resetToken.user.name
+        );
+      } catch (emailError) {
+        console.error('Erro ao enviar email de confirmação:', emailError);
+      }
+      return { success: true };
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      console.error('Erro em resetPassword:', error);
+      throw new AppError('Erro ao redefinir senha', 400);
+    }
   }
 }
 
